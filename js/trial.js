@@ -53,7 +53,10 @@ const rowIndex = 1
 const columnIndex = 0
 const boardHeight = 20
 const boardWidth = 10
-
+const boardLeftEnd = 0
+const boardRightEnd = 9
+const boardBottom = 19
+const boardTop = 0
 
 /*----- state variables -----*/
 let gameOver = false
@@ -167,7 +170,7 @@ function keyBehavior(evt) {
         }
         else{
             isPrevBlockDone = true
-            if(currentRow === 0){
+            if(currentRow === boardTop){
                 gameOver = true
                 render()
             }else{
@@ -189,77 +192,62 @@ function keyBehavior(evt) {
             cells.push(board[c][r])
             leftCells.push(board[c-1][r])
         }
-        if(leftCells.every(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== 0){
+        //move left
+        if(leftCells.every(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== boardLeftEnd && bottomCells.every(cl=>cl==='b') && blockCorners.bottomLeft[columnIndex] !== boardBottom){
             for(let c = currentColumn; c<currentColumn+nOfColsInBlock; c++){
                 for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
-                    if(c>0){
+                    if(c>boardLeftEnd){
                         board[c-1][r] = board[c][r]
                         board[c][r] = 'b'
                     }
                 }
-            }
-            
-            // let tempBoard = []
-            // for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
-            //     tempBoard.push(board.map(c=>c[r]))
-            // }
-            
-            
-            // for(let r = 0; r<tempBoard.length; r++){
-            //     for(let c = currentColumn; c<currentColumn+nOfColsInBlock; c++){
-            //         if(c > 0){
-            //             tempBoard[c-1][r] = tempBoard[c][r]
-            //         }                   
-            //     }
-               
-            // }
-            // console.log(tempBoard)
+            }         
+            currentColumn--
+            cornerCalculator()
+            render() 
         }
-        currentColumn--
-        cornerCalculator()
-        render()        
+        else{
+            isPrevBlockDone = true
+            if(currentRow === boardTop){
+                gameOver = true
+                render()
+            }else{
+                blockGenerator()
+            }
+        }              
 
     } else if (evt.key === "ArrowRight") {
-        column = pieceObj.topLeft[0]
-        row = pieceObj.topLeft[1]
+        currentColumn = blockCorners.topLeft[columnIndex]
+        currentRow = blockCorners.topLeft[rowIndex]
+
         findBottomCells()
-        if (bottomCells.every(cell => cell === 'b')) {
-            cells = []
-            rightCells = []
 
-            for (let r = pieceObj.topLeft[1]; r <= pieceObj.bottomRight[1]; r++) {
-                let c = pieceObj.topRight[0]
-                let rCol = c + 1
-                if (c < 9) {
-                    rightCells.push(board[rCol][r])
-                    cells.push(board[c][r])
-                }
-
-            }
-
-            if (pieceObj.topRight[0] + nOfColsInM - 1 <= 9 && isOldPieceDone === false && pieceObj.bottomLeft[1] !== 19 && rightCells.every(cell => cell === 'b')) {
-                for (let c = pieceObj.topRight[0]; c >= pieceObj.topLeft[0]; c--) {
-                    for (let r = row; r <= pieceObj.bottomLeft[1]; r++) {
-                        board[c + 1][r] = board[c][r]
+        //finding cells on the right side of the block and the cells on the right end of the block
+        let rightCells = []
+        let cells = []
+        let c = currentColumn + nOfColsInBlock
+        
+        for(let r = currentRow; r<nOfRowsInBlock+currentRow; r++){
+            if(c<boardRightEnd){
+                cells.push(board[c][r])
+                rightCells.push(board[c+1][r])
+            }            
+        }
+        //move right
+        if(rightCells.every(cl=>cl==='b') && blockCorners.topRight[columnIndex] !== boardRightEnd){
+            for(let c = currentColumn+nOfColsInBlock-1 ; c>=currentColumn; c--){
+                for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
+                    if(c>=boardLeftEnd){
+                        board[c+1][r] = board[c][r]
                         board[c][r] = 'b'
                     }
                 }
-            }
-            else {
-                return
-            }
-            column = column + 1
-            cornerCalculator()
-            // if(pieceObj.bottomLeft[1] === 19 || isOldPieceDone===true || board[column][pieceObj.bottomLeft[1]+1]!=='b'){
-            //     isOldPieceDone = true
-            //     isRowFilled()
-            //     nextpiece()
-            // }
-            render()
-        } else {
-            isOldPieceDone = true
+            }         
+            
         }
-
+        currentColumn++
+        cornerCalculator()
+        render()           
     }
 }
 

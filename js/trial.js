@@ -183,6 +183,8 @@ function keyBehavior(evt) {
         currentColumn = blockCorners.topLeft[columnIndex]
         currentRow = blockCorners.topLeft[rowIndex]
 
+        findBottomCells()
+
         //finding cells on the left side of the block and the cells on the left end of the block
         let leftCells = []
         let cells = []
@@ -193,7 +195,7 @@ function keyBehavior(evt) {
             leftCells.push(board[c-1][r])
         }
         //move left
-        if(leftCells.every(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== boardLeftEnd && bottomCells.every(cl=>cl==='b') && blockCorners.bottomLeft[columnIndex] !== boardBottom){
+        if(leftCells.every(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== boardLeftEnd && bottomCells.every(cl=>cl==='b') && blockCorners.bottomLeft[rowIndex] !== boardBottom){
             for(let c = currentColumn; c<currentColumn+nOfColsInBlock; c++){
                 for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
                     if(c>boardLeftEnd){
@@ -208,7 +210,7 @@ function keyBehavior(evt) {
         }
         else{
             isPrevBlockDone = true
-            if(currentRow === boardTop){
+            if(currentRow === boardTop && bottomCells.every(cl=>cl==='b')){
                 gameOver = true
                 render()
             }else{
@@ -234,7 +236,7 @@ function keyBehavior(evt) {
             }            
         }
         //move right
-        if(rightCells.every(cl=>cl==='b') && blockCorners.topRight[columnIndex] !== boardRightEnd){
+        if(rightCells.every(cl=>cl==='b') && blockCorners.topRight[columnIndex] !== boardRightEnd && bottomCells.every(cl=>cl==='b') && blockCorners.bottomRight[rowIndex] !== boardBottom){
             for(let c = currentColumn+nOfColsInBlock-1 ; c>=currentColumn; c--){
                 for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
                     if(c>=boardLeftEnd){
@@ -243,11 +245,20 @@ function keyBehavior(evt) {
                     }
                 }
             }         
-            
+            currentColumn++
+            cornerCalculator()
+            render()   
         }
-        currentColumn++
-        cornerCalculator()
-        render()           
+        else{
+            isPrevBlockDone = true
+            if(currentRow === boardTop && bottomCells.every(cl=>cl==='b')){
+                gameOver = true
+                render()
+            }else{
+                blockGenerator()
+            }
+        }    
+                 
     }
 }
 

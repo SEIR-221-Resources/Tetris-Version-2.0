@@ -12,13 +12,14 @@ const colors = {
 }
 const shapeMatrices = {
     'T': [
-        ['p', 'p', 'p'],
-        ['b', 'p', 'b']
+        ['b', 'p'],
+        ['p', 'p'],
+        ['b', 'p']    
     ],
     'L': [
-        ['q', 'b'],
-        ['q', 'b'],
-        ['q', 'q']
+        ['q','q'],
+        ['b','q'],
+        ['b','q']
     ],
     'J': [
         ['b', 'r'],
@@ -26,12 +27,14 @@ const shapeMatrices = {
         ['r', 'r']
     ],
     'S': [
-        ['b', 's', 's'],
-        ['s', 's', 'b']
+        ['s', 'b'], 
+        ['s', 's'], 
+        ['b', 's']
     ],
     'Z': [
-        ['t', 't', 'b'],
-        ['b', 't', 't']
+        ['b', 't'], 
+        ['t', 't'], 
+        ['t', 'b']
     ],
     'O': [
         ['u', 'u'],
@@ -42,28 +45,30 @@ const shapeMatrices = {
         ['v'],
         ['v'],
         ['v']
-    ]
+    ]    
 }
-originRow = 0
-originCol = 4
+const originRow = 0
+const originCol = 4
+const rowIndex = 1
+const columnIndex = 0
+const boardHeight = 20
+const boardWidth = 10
 
 
 /*----- state variables -----*/
 let gameOver = false
 let board
-let piece
-let isOldPieceDone = true
-let column = 0
-let row = 0
-let filledRows = []
-let nOfRowsInM
-let nOfColsInM
-let mArray
-let cells = []
+let block
+let isPrevBlockDone = true
+let currentColumn = 0
+let currentRow = 0
+let nOfRowsInBlock
+let nOfColsInBlock
+let blockArray
 let bottomCells = []
 let leftCells = []
 let rightCells = []
-let pieceObj = { 'topLeft': [], 'topRight': [], 'bottomRight': [], 'bottomLeft': [] }
+let blockCorners = { 'topLeft': [], 'topRight': [], 'bottomRight': [], 'bottomLeft': [] }
 
 /*----- cached elements  -----*/
 
@@ -74,9 +79,9 @@ const playAgainEl = document.querySelector("#playAgain")
 
 /*----- event listeners -----*/
 
-
 playAgainEl.addEventListener('click', init)
 document.addEventListener('keyup', keyBehavior)
+
 /*----- functions -----*/
 function init() {
     board = [
@@ -91,9 +96,9 @@ function init() {
         ['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b'],
         ['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b']
     ]
-    gameOver = false
+    
     render()
-    nextpiece()
+    blockGenerator()
 
 }
 function render() {
@@ -115,7 +120,7 @@ function renderMessage() {
         messageEl.innerText = "GAME OVER!!!"
     }
     else{
-        // isOldPieceDone = true
+        isPrevBlockDone = true
         messageEl.innerText=""   
     }
 }
@@ -125,17 +130,51 @@ function renderControls() {
 }
 function keyBehavior(evt) {
     if (evt.key === "ArrowDown") {
+        //moves the block down the board
+
+        //finds the cell values below the block
         findBottomCells()
-        if (cells.some(cell => { return cell !== 'b' }) && bottomCells.every(cell => { return cell === 'b' })) {
-            isOldPieceDone = false
-            dropPiece()
+        
+        if(bottomCells.every(el=>el==='b') && blockCorners.bottomLeft[rowIndex]!==19){
+            cornerCalculator()
+            currentColumn = blockCorners.topLeft[columnIndex]
+            currentRow = blockCorners.topLeft[rowIndex]
+
+            let tempBoard = []
+            for(let c = currentColumn; c<nOfColsInBlock+currentColumn ; c++){
+                let tempColumn = board[c].map(cl=>cl)
+                tempBoard.push(tempColumn)
+            }
+            
+            
+            for(let r = currentRow+nOfRowsInBlock; r>=currentRow; r--){
+                for(let c = 0; c<tempBoard.length; c++ ){
+                    if(r===0){
+                        tempBoard[c][r]= 'b'
+                    }
+                    else{
+                        tempBoard[c][r] = tempBoard[c][r-1]
+                    }
+                    
+                }                
+                
+            }
+            board.splice(currentColumn, nOfColsInBlock, ...tempBoard)  
+            currentRow++
+            cornerCalculator()
+                    
+            render()
         }
-        if (pieceObj.bottomLeft[1] === 19 || bottomCells.some(cell => { return cell !== 'b' })) {
-            isOldPieceDone = true
-            isRowFilled()
-            nextpiece()
+        else{
+            isPrevBlockDone = true
+            if(currentRow === 0){
+                gameOver = true
+                render()
+            }else{
+                blockGenerator()
+            }
         }
-        render()
+        
     }
     else if (evt.key === "ArrowLeft") {
         column = pieceObj.topLeft[0]
@@ -236,74 +275,9 @@ function keyBehavior(evt) {
 
     }
 }
-function dropPiece() {
-    isOldPieceDone = false
-    row = pieceObj.topLeft[1]
-    column = pieceObj.topLeft[0]
-    findBottomCells()
 
-    if (pieceObj.bottomLeft[1] !== 19 && row !== 0) {
-        for (let c = pieceObj.bottomLeft[0]; c <= pieceObj.bottomRight[0]; c++) {
-            for (let r = pieceObj.bottomLeft[1]; r >= pieceObj.topLeft[1]; r--) {
-                board[c][r + 1] = board[c][r]
-                prevRow = r
-            }
-            board[c][prevRow] = 'b'
-        }
-    }
-    else if (row === 0 && bottomCells.every(cell => cell === 'b')) {
-        for (let c = pieceObj.bottomLeft[0]; c <= pieceObj.bottomRight[0]; c++) {
-            for (let r = pieceObj.bottomLeft[1]; r >= pieceObj.topLeft[1]; r--) {
-                board[c][r + 1] = board[c][r]
-            }
-            board[c][0] = 'b'
-        }
-    }
-    //   }else if(pieceObj.bottomLeft[1] === 19 || isOldPieceDone===true || bottomCells.some(cell=>cell!=='b')){
-    //     console.log("A")
-    //       isRowFilled()
-    //       nextpiece()
-    //   }
-    row = row + 1
-    cornerCalculator()
-    //   isOldPieceDone = false
-
-}
-function pieceAppear() {
-    nOfRowsInM = 0
-    nOfColsInM = 0
-    mArray = []
-    piece = shapeMatrices.O
-
-    piece.forEach((eachCol, cIdx) => {
-        nOfColsInM++
-        eachCol.forEach((eachRow, rIdx) => {
-            nOfRowsInM++
-            mArray.push(piece[cIdx][rIdx])
-        })
-    })
-
-    nOfRowsInM = nOfRowsInM / nOfColsInM
-    column = originCol
-    row = originRow
-
-    if (isOldPieceDone === true) {
-        for (let c = column; c < nOfColsInM + column; c++) {
-            for (let r = row; r < nOfRowsInM + row; r++) {
-                mArray.forEach(el => board[c][r] = el)
-            }
-        }
-    }
-    isOldPieceDone = false
-    cornerCalculator()
-    findBottomCells()
-    if (bottomCells.some(cell => cell !== 'b') && pieceObj.topLeft[1] === 0) {
-        gameOver = true
-    }
-    render()
-}
 function isRowFilled() {
-    filledRows = []
+    //checks if any rows on board are filled. If yes, then they get deleted.
     for(let r=0; r<=19; r++){
         let rw = board.map(c=>c[r])
         if(!rw.includes('b')){
@@ -315,35 +289,62 @@ function isRowFilled() {
     }
 }
 function cornerCalculator() {
-    pieceObj.topLeft = [column, row]
-    pieceObj.topRight = [column + nOfColsInM - 1, row]
-    pieceObj.bottomRight = [column + nOfColsInM - 1, row + nOfRowsInM - 1]
-    pieceObj.bottomLeft = [column, row + nOfRowsInM - 1]
+    blockCorners.topLeft = [currentColumn, currentRow]
+    blockCorners.topRight = [currentColumn + nOfColsInBlock - 1, currentRow]
+    blockCorners.bottomRight = [currentColumn + nOfColsInBlock - 1, currentRow + nOfRowsInBlock - 1]
+    blockCorners.bottomLeft = [currentColumn, currentRow + nOfRowsInBlock - 1]
 }
-function randomPieceGenerator() {
-    let randomNumber = Math.floor(Math.random() * 6)
-    let pieceShape = shapes[randomNumber]
-    piece = shapeMatrices[pieceShape]
+function randomBlockGenerator() {
+    //generates a random block 
+    let randomNumber = Math.floor(Math.random() * 7)
+    let blockShape = shapes[randomNumber]
+    blk = shapeMatrices[blockShape]
+    
+    return blk
+}
+function blockGenerator() {
+    //generates a block and places it on board
 
-    return piece
-}
-function nextpiece() {
-    if (isOldPieceDone === true) {
-        pieceAppear()
-        isOldPieceDone = false
+    block = randomBlockGenerator()
+    nOfRowsInBlock = block[0].length
+    nOfColsInBlock = block.length
+    blockArray = []
+    
+
+    //converts the block into a single array
+    block.forEach(col => col.forEach(cell=>blockArray.push(cell)))
+    currentColumn = originCol
+    currentRow = originRow
+    start = currentRow
+
+    //places the block into the board
+    
+    while(start < blockArray.length){
+        board[currentColumn].splice(0, nOfRowsInBlock, ...blockArray.slice(start, start+nOfRowsInBlock))
+        start = start+nOfRowsInBlock
+        currentColumn++
     }
+    
+    //resetting the column position and row position of the block
+    currentColumn = originCol
+    currentRow = originRow
+    
+    isPrevBlockDone = false
+
+    //calculating the corner indices of the block on board
+    cornerCalculator()
+    render()
     
 }
 function findBottomCells() {
-    cells = []
+    //finds cells at the bottom of the block on board
     bottomCells = []
 
-    for (let c = pieceObj.bottomLeft[0]; c <= pieceObj.bottomRight[0]; c++) {
-        let r = pieceObj.bottomLeft[1]
+    for (let c = blockCorners.bottomLeft[0]; c <= blockCorners.bottomRight[0]; c++) {
+        let r = blockCorners.bottomLeft[1]
         let bRow = r + 1
         if (r < 19) {
-            bottomCells.push(board[c][bRow])
-            cells.push(board[c][r])
+            bottomCells.push(board[c][bRow])         
         }
     }
 }

@@ -96,7 +96,7 @@ function init() {
         ['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b'],
         ['b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'b']
     ]
-    
+    gameOver = false
     render()
     blockGenerator()
 
@@ -177,60 +177,47 @@ function keyBehavior(evt) {
         
     }
     else if (evt.key === "ArrowLeft") {
-        column = pieceObj.topLeft[0]
-        row = pieceObj.topLeft[1]
-        findBottomCells()
-        console.log(column, row)
-        console.log(bottomCells)
-        console.log(pieceObj)
-        if (bottomCells.every(cell => cell === 'b')) {
-            cells = []
-            leftCells = []
+        currentColumn = blockCorners.topLeft[columnIndex]
+        currentRow = blockCorners.topLeft[rowIndex]
 
-            // console.log(pieceObj.topLeft[1], pieceObj.topLeft[0])
-            for(let r = pieceObj.topLeft[1]; r <= pieceObj.bottomLeft[1]; r++){
-                let c = pieceObj.topLeft[0]
-                let lCol = c - 1
-                if (c > 0) {
-                    console.log(r)
-                    leftCells.push(board[lCol][r])
-                    cells.push(board[c][r])
-                }
-            }
-            console.log(leftCells)
-            console.log(column, isOldPieceDone, pieceObj.bottomLeft[1])
-            console.log("B")
-            
-            if (column > 0 && isOldPieceDone === false && pieceObj.bottomLeft[1] !== 19 && leftCells.every(cell => cell === 'b')) {
-                for (let c = column; c <= pieceObj.topRight[0]; c++) {
-                    for (let r = row; r <= pieceObj.bottomLeft[1]; r++) {
-                        board[c - 1][r] = board[c][r]
-                        board[c][r] = 'b'
-                        column = c - 1
-                        console.log(column)
-                    }
-                    console.log(column, isOldPieceDone, pieceObj.bottomLeft[1])
-                    console.log("B")
-                }
-                column = column - 1
-                console.log(column)
-                
-            }
-            else {
-                console.log("A")
-                return
-            }
-           
-            cornerCalculator()
-            render()
-        } else {
-            findBottomCells()
-            if(bottomCells.some(cell=>cell!=='b')){
-                isOldPieceDone = true
-            }
-
+        //finding cells on the left side of the block and the cells on the left end of the block
+        let leftCells = []
+        let cells = []
+        let c = currentColumn
+        
+        for(let r = currentRow; r<nOfRowsInBlock+currentRow; r++){
+            cells.push(board[c][r])
+            leftCells.push(board[c-1][r])
         }
+        if(leftCells.every(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== 0){
+            for(let c = currentColumn; c<currentColumn+nOfColsInBlock; c++){
+                for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
+                    if(c>0){
+                        board[c-1][r] = board[c][r]
+                        board[c][r] = 'b'
+                    }
+                }
+            }
             
+            // let tempBoard = []
+            // for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
+            //     tempBoard.push(board.map(c=>c[r]))
+            // }
+            
+            
+            // for(let r = 0; r<tempBoard.length; r++){
+            //     for(let c = currentColumn; c<currentColumn+nOfColsInBlock; c++){
+            //         if(c > 0){
+            //             tempBoard[c-1][r] = tempBoard[c][r]
+            //         }                   
+            //     }
+               
+            // }
+            // console.log(tempBoard)
+        }
+        currentColumn--
+        cornerCalculator()
+        render()        
 
     } else if (evt.key === "ArrowRight") {
         column = pieceObj.topLeft[0]

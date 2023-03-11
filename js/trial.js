@@ -199,7 +199,7 @@ function keyBehavior(evt) {
         }
 
         //move left
-        if(leftCells.some(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== boardLeftEnd && canBlockMove && blockCorners.bottomLeft[rowIndex] !== boardBottom){
+        if(leftCells.every(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== boardLeftEnd && canBlockMove && blockCorners.bottomLeft[rowIndex] !== boardBottom){
             for(let c = currentColumn; c<currentColumn+nOfColsInBlock; c++){
                 for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
                     if(c>boardLeftEnd){
@@ -249,7 +249,7 @@ function keyBehavior(evt) {
             }            
         }
         //move right
-        if(rightCells.some(cl=>cl==='b') && blockCorners.topRight[columnIndex] !== boardRightEnd && canBlockMove && blockCorners.bottomRight[rowIndex] !== boardBottom){
+        if(rightCells.every(cl=>cl==='b') && blockCorners.topRight[columnIndex] !== boardRightEnd && canBlockMove && blockCorners.bottomRight[rowIndex] !== boardBottom){
             for(let c = currentColumn+nOfColsInBlock-1 ; c>=currentColumn; c--){
                 for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
                     if(c<boardRightEnd){

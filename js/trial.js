@@ -72,6 +72,7 @@ let bottomCells = []
 let cellsAtBottomOfBlock = []
 let leftCells = []
 let rightCells = []
+let canBlockMove
 let blockCorners = { 'topLeft': [], 'topRight': [], 'bottomRight': [], 'bottomLeft': [] }
 
 /*----- cached elements  -----*/
@@ -136,39 +137,8 @@ function keyBehavior(evt) {
     if (evt.key === "ArrowDown") {
         //moves the block down the board
 
-        //finds the cell values below the block
-        findBottomCells()
-        let canBlockMove = false
-
-        //checking if there is space to go down
-        if(bottomCells.some(el=>el==='b')){
-            let countOfDefault = 0
-            bottomCells.forEach(el=>{el==='b'? countOfDefault++ : countOfDefault})
-            cellsAtBottomOfBlock.forEach(el=>{ el==='b' ? countOfDefault++ : countOfDefault})
-            if(bottomCells.every(el=>el==='b')){
-                canBlockMove = true
-            }else{
-                if(countOfDefault === nOfColsInBlock){
-                    canBlockMove = true
-                }
-                else{
-                    canBlockMove = false
-                }
-            }
-            
-            // for(let i = 0; i<bottomCells.length; i++){
-            //     if((bottomCells[i] === 'b' && cellsAtBottomOfBlock[i] !== 'b') || (bottomCells[i] !== 'b' && cellsAtBottomOfBlock[i] === 'b')){
-            //         canBlockMove = true
-            //     }
-            //     else{
-            //         canBlockMove = false
-            //         break
-            //     }
-            // }
-        }else{
-            canBlockMove = false
-        }
-        // canBlockMove === true && 
+        checkIfBlockCanMove()
+        
         if(blockCorners.bottomLeft[rowIndex]!==19 && canBlockMove){
             cornerCalculator()
             currentColumn = blockCorners.topLeft[columnIndex]
@@ -211,6 +181,7 @@ function keyBehavior(evt) {
         
     }else if (evt.key === "ArrowLeft") {
         //moves the block to the left
+
         currentColumn = blockCorners.topLeft[columnIndex]
         currentRow = blockCorners.topLeft[rowIndex]
 
@@ -241,6 +212,8 @@ function keyBehavior(evt) {
             render() 
         }
         else{
+            findBottomCells()
+
             isPrevBlockDone = true
             isRowFilled()
             if(currentRow === boardTop && bottomCells.every(cl=>cl==='b')){
@@ -368,6 +341,30 @@ function findBottomCells() {
             bottomCells.push(board[c][bRow])         
         }
         cellsAtBottomOfBlock.push(board[c][r])
+    }
+}
+function checkIfBlockCanMove(){
+    //finds the cell values below the block
+    findBottomCells()
+    canBlockMove = false
+
+    //checking if there is space for the block to go down
+    if(bottomCells.some(el=>el==='b')){
+        let countOfDefault = 0
+        bottomCells.forEach(el=>{el==='b'? countOfDefault++ : countOfDefault})
+        cellsAtBottomOfBlock.forEach(el=>{ el==='b' ? countOfDefault++ : countOfDefault})
+        if(bottomCells.every(el=>el==='b')){
+            canBlockMove = true
+        }else{
+            if(countOfDefault === nOfColsInBlock){
+                canBlockMove = true
+            }
+            else{
+                canBlockMove = false
+            }
+        }            
+    }else{
+        canBlockMove = false
     }
 }
 init()

@@ -69,6 +69,7 @@ let nOfRowsInBlock
 let nOfColsInBlock
 let blockArray
 let bottomCells = []
+let cellsAtBottomOfBlock = []
 let leftCells = []
 let rightCells = []
 let blockCorners = { 'topLeft': [], 'topRight': [], 'bottomRight': [], 'bottomLeft': [] }
@@ -137,39 +138,69 @@ function keyBehavior(evt) {
 
         //finds the cell values below the block
         findBottomCells()
-        
-        if(bottomCells.every(el=>el==='b') && blockCorners.bottomLeft[rowIndex]!==19){
+        let canBlockMove = false
+
+        //checking if there is space to go down
+        if(bottomCells.some(el=>el==='b')){
+            let countOfDefault = 0
+            bottomCells.forEach(el=>{el==='b'? countOfDefault++ : countOfDefault})
+            cellsAtBottomOfBlock.forEach(el=>{ el==='b' ? countOfDefault++ : countOfDefault})
+            if(bottomCells.every(el=>el==='b')){
+                canBlockMove = true
+            }else{
+                if(countOfDefault === nOfColsInBlock){
+                    canBlockMove = true
+                }
+                else{
+                    canBlockMove = false
+                }
+            }
+            
+            // for(let i = 0; i<bottomCells.length; i++){
+            //     if((bottomCells[i] === 'b' && cellsAtBottomOfBlock[i] !== 'b') || (bottomCells[i] !== 'b' && cellsAtBottomOfBlock[i] === 'b')){
+            //         canBlockMove = true
+            //     }
+            //     else{
+            //         canBlockMove = false
+            //         break
+            //     }
+            // }
+        }else{
+            canBlockMove = false
+        }
+        // canBlockMove === true && 
+        if(blockCorners.bottomLeft[rowIndex]!==19 && canBlockMove){
             cornerCalculator()
             currentColumn = blockCorners.topLeft[columnIndex]
             currentRow = blockCorners.topLeft[rowIndex]
-
             let tempBoard = []
+
             for(let c = currentColumn; c<nOfColsInBlock+currentColumn ; c++){
                 let tempColumn = board[c].map(cl=>cl)
                 tempBoard.push(tempColumn)
-            }
-            
+            } 
             
             for(let r = currentRow+nOfRowsInBlock; r>=currentRow; r--){
                 for(let c = 0; c<tempBoard.length; c++ ){
                     if(r===0){
                         tempBoard[c][r]= 'b'
-                    }
-                    else{
+                    }else if(tempBoard[c][r] === 'b' && tempBoard[c][r-1] !== 'b'){
                         tempBoard[c][r] = tempBoard[c][r-1]
-                    }
-                    
+                        tempBoard[c][r-1] = 'b'
+                    }else if(tempBoard[c][r] !== 'b' && tempBoard[c][r-1] === 'b'){
+                        continue
+                    }                    
                 }                
-                
             }
+
             board.splice(currentColumn, nOfColsInBlock, ...tempBoard)  
             currentRow++
             cornerCalculator()
-                    
             render()
         }
         else{
             isPrevBlockDone = true
+            isRowFilled()
             if(currentRow === boardTop){
                 gameOver = true
                 render()
@@ -178,8 +209,8 @@ function keyBehavior(evt) {
             }
         }
         
-    }
-    else if (evt.key === "ArrowLeft") {
+    }else if (evt.key === "ArrowLeft") {
+        //moves the block to the left
         currentColumn = blockCorners.topLeft[columnIndex]
         currentRow = blockCorners.topLeft[rowIndex]
 
@@ -194,6 +225,7 @@ function keyBehavior(evt) {
             cells.push(board[c][r])
             leftCells.push(board[c-1][r])
         }
+
         //move left
         if(leftCells.every(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== boardLeftEnd && bottomCells.every(cl=>cl==='b') && blockCorners.bottomLeft[rowIndex] !== boardBottom){
             for(let c = currentColumn; c<currentColumn+nOfColsInBlock; c++){
@@ -210,6 +242,7 @@ function keyBehavior(evt) {
         }
         else{
             isPrevBlockDone = true
+            isRowFilled()
             if(currentRow === boardTop && bottomCells.every(cl=>cl==='b')){
                 gameOver = true
                 render()
@@ -219,6 +252,7 @@ function keyBehavior(evt) {
         }              
 
     } else if (evt.key === "ArrowRight") {
+        //moves the block to the right
         currentColumn = blockCorners.topLeft[columnIndex]
         currentRow = blockCorners.topLeft[rowIndex]
 
@@ -251,6 +285,7 @@ function keyBehavior(evt) {
         }
         else{
             isPrevBlockDone = true
+            isRowFilled()
             if(currentRow === boardTop && bottomCells.every(cl=>cl==='b')){
                 gameOver = true
                 render()
@@ -261,7 +296,6 @@ function keyBehavior(evt) {
                  
     }
 }
-
 function isRowFilled() {
     //checks if any rows on board are filled. If yes, then they get deleted.
     for(let r=0; r<=19; r++){
@@ -325,6 +359,7 @@ function blockGenerator() {
 function findBottomCells() {
     //finds cells at the bottom of the block on board
     bottomCells = []
+    cellsAtBottomOfBlock = []
 
     for (let c = blockCorners.bottomLeft[0]; c <= blockCorners.bottomRight[0]; c++) {
         let r = blockCorners.bottomLeft[1]
@@ -332,6 +367,7 @@ function findBottomCells() {
         if (r < 19) {
             bottomCells.push(board[c][bRow])         
         }
+        cellsAtBottomOfBlock.push(board[c][r])
     }
 }
 init()

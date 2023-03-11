@@ -184,8 +184,7 @@ function keyBehavior(evt) {
 
         currentColumn = blockCorners.topLeft[columnIndex]
         currentRow = blockCorners.topLeft[rowIndex]
-
-        findBottomCells()
+        checkIfBlockCanMove()
 
         //finding cells on the left side of the block and the cells on the left end of the block
         let leftCells = []
@@ -193,17 +192,23 @@ function keyBehavior(evt) {
         let c = currentColumn
         
         for(let r = currentRow; r<nOfRowsInBlock+currentRow; r++){
-            cells.push(board[c][r])
-            leftCells.push(board[c-1][r])
+            if(c > boardLeftEnd){
+                cells.push(board[c][r])
+                leftCells.push(board[c-1][r])
+            }            
         }
 
         //move left
-        if(leftCells.every(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== boardLeftEnd && bottomCells.every(cl=>cl==='b') && blockCorners.bottomLeft[rowIndex] !== boardBottom){
+        if(leftCells.some(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== boardLeftEnd && canBlockMove && blockCorners.bottomLeft[rowIndex] !== boardBottom){
             for(let c = currentColumn; c<currentColumn+nOfColsInBlock; c++){
                 for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
                     if(c>boardLeftEnd){
-                        board[c-1][r] = board[c][r]
-                        board[c][r] = 'b'
+                        if(board[c-1][r] === 'b' && board[c][r] !== 'b'){
+                            board[c-1][r] = board[c][r]
+                            board[c][r] = 'b'
+                        }else if(board[c-1][r] !== 'b' && board[c][r] === 'b'){
+                            continue
+                        }
                     }
                 }
             }         
@@ -212,16 +217,17 @@ function keyBehavior(evt) {
             render() 
         }
         else{
-            findBottomCells()
-
-            isPrevBlockDone = true
-            isRowFilled()
-            if(currentRow === boardTop && bottomCells.every(cl=>cl==='b')){
-                gameOver = true
-                render()
-            }else{
-                blockGenerator()
-            }
+            checkIfBlockCanMove()
+            if(!canBlockMove){
+                isPrevBlockDone = true
+                isRowFilled()
+                if(currentRow === boardTop){
+                    gameOver = true
+                    render()
+                }else{
+                    blockGenerator()
+                }
+            }            
         }              
 
     } else if (evt.key === "ArrowRight") {
@@ -229,12 +235,12 @@ function keyBehavior(evt) {
         currentColumn = blockCorners.topLeft[columnIndex]
         currentRow = blockCorners.topLeft[rowIndex]
 
-        findBottomCells()
+        checkIfBlockCanMove()
 
         //finding cells on the right side of the block and the cells on the right end of the block
         let rightCells = []
         let cells = []
-        let c = currentColumn + nOfColsInBlock
+        let c = currentColumn + nOfColsInBlock-1
         
         for(let r = currentRow; r<nOfRowsInBlock+currentRow; r++){
             if(c<boardRightEnd){
@@ -243,12 +249,16 @@ function keyBehavior(evt) {
             }            
         }
         //move right
-        if(rightCells.every(cl=>cl==='b') && blockCorners.topRight[columnIndex] !== boardRightEnd && bottomCells.every(cl=>cl==='b') && blockCorners.bottomRight[rowIndex] !== boardBottom){
+        if(rightCells.some(cl=>cl==='b') && blockCorners.topRight[columnIndex] !== boardRightEnd && canBlockMove && blockCorners.bottomRight[rowIndex] !== boardBottom){
             for(let c = currentColumn+nOfColsInBlock-1 ; c>=currentColumn; c--){
                 for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
-                    if(c>=boardLeftEnd){
-                        board[c+1][r] = board[c][r]
-                        board[c][r] = 'b'
+                    if(c<boardRightEnd){
+                        if(board[c+1][r] === 'b' && board[c][r] !== 'b'){
+                            board[c+1][r] = board[c][r]
+                            board[c][r] = 'b'
+                        }else if(board[c+1][r] !== 'b' && board[c][r] === 'b'){
+                            continue
+                        }                        
                     }
                 }
             }         
@@ -257,14 +267,17 @@ function keyBehavior(evt) {
             render()   
         }
         else{
-            isPrevBlockDone = true
-            isRowFilled()
-            if(currentRow === boardTop && bottomCells.every(cl=>cl==='b')){
-                gameOver = true
-                render()
-            }else{
-                blockGenerator()
-            }
+            checkIfBlockCanMove()
+            if(!canBlockMove){
+                isPrevBlockDone = true
+                isRowFilled()
+                if(currentRow === boardTop){
+                    gameOver = true
+                    render()
+                }else{
+                    blockGenerator()
+                }
+            }          
         }    
                  
     }

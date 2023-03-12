@@ -184,12 +184,13 @@ function keyBehavior(evt) {
 
         currentColumn = blockCorners.topLeft[columnIndex]
         currentRow = blockCorners.topLeft[rowIndex]
-        checkIfBlockCanMove()
+        // checkIfBlockCanMove()
 
         //finding cells on the left side of the block and the cells on the left end of the block
         let leftCells = []
         let cells = []
         let c = currentColumn
+        let canBlockMoveLeft = false
         
         for(let r = currentRow; r<nOfRowsInBlock+currentRow; r++){
             if(c > boardLeftEnd){
@@ -198,8 +199,19 @@ function keyBehavior(evt) {
             }            
         }
 
+        for(let i=0; i<leftCells.length; i++){
+            if(leftCells.every(el=>el==='b')){
+                canBlockMoveLeft = true
+            }else if((leftCells[i]==='b'&& cells[i]!=='b') || (leftCells[i]!=='b'&& cells[i]==='b')){
+                canBlockMoveLeft = true
+            }else{
+                canBlockMoveLeft = false
+                break
+            }
+        }
+
         //move left
-        if(leftCells.every(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== boardLeftEnd && canBlockMove && blockCorners.bottomLeft[rowIndex] !== boardBottom){
+        if(leftCells.every(cl=>cl==='b') && blockCorners.topLeft[columnIndex] !== boardLeftEnd && blockCorners.bottomLeft[rowIndex] !== boardBottom && canBlockMoveLeft){
             for(let c = currentColumn; c<currentColumn+nOfColsInBlock; c++){
                 for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
                     if(c>boardLeftEnd){
@@ -235,12 +247,13 @@ function keyBehavior(evt) {
         currentColumn = blockCorners.topLeft[columnIndex]
         currentRow = blockCorners.topLeft[rowIndex]
 
-        checkIfBlockCanMove()
+        // checkIfBlockCanMove()
 
         //finding cells on the right side of the block and the cells on the right end of the block
         let rightCells = []
         let cells = []
         let c = currentColumn + nOfColsInBlock-1
+        let canBlockMoveRight = false
         
         for(let r = currentRow; r<nOfRowsInBlock+currentRow; r++){
             if(c<boardRightEnd){
@@ -248,8 +261,20 @@ function keyBehavior(evt) {
                 rightCells.push(board[c+1][r])
             }            
         }
+
+        for(let i=0; i<rightCells.length; i++){
+            if(rightCells.every(el=>el==='b')){
+                canBlockMoveRight = true
+            }else if((rightCells[i]==='b'&& cells[i]!=='b') || (rightCells[i]!=='b'&& cells[i]==='b')){
+                canBlockMoveRight = true
+            }else{
+                canBlockMoveRight = false
+                break
+            }
+        }
+
         //move right
-        if(rightCells.every(cl=>cl==='b') && blockCorners.topRight[columnIndex] !== boardRightEnd && canBlockMove && blockCorners.bottomRight[rowIndex] !== boardBottom){
+        if(rightCells.every(cl=>cl==='b') && blockCorners.topRight[columnIndex] !== boardRightEnd && blockCorners.bottomRight[rowIndex] !== boardBottom && canBlockMoveRight){
             for(let c = currentColumn+nOfColsInBlock-1 ; c>=currentColumn; c--){
                 for(let r = currentRow; r<currentRow+nOfRowsInBlock; r++){
                     if(c<boardRightEnd){

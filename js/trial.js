@@ -363,21 +363,19 @@ function checkIfBlockCanMove(){
 
     //checking if there is space for the block to go down
     if(bottomCells.some(el=>el==='b')){
-        let countOfDefault = 0
-        bottomCells.forEach(el=>{el==='b'? countOfDefault++ : countOfDefault})
-        cellsAtBottomOfBlock.forEach(el=>{ el==='b' ? countOfDefault++ : countOfDefault})
+                
         if(bottomCells.every(el=>el==='b')){
             canBlockMove = true
         }else{
-            if(countOfDefault === nOfColsInBlock){
-                canBlockMove = true
-            }
-            else{
-                canBlockMove = false
-            }
-        }            
-    }else{
-        canBlockMove = false
+            for(let i = 0; i < bottomCells.length; i++){
+                if((bottomCells[i] === 'b'&& cellsAtBottomOfBlock[i]!=='b') || (bottomCells[i] !== 'b'&& cellsAtBottomOfBlock[i]==='b')){
+                    canBlockMove = true
+                }else{
+                    canBlockMove = false
+                    break
+                }
+            }            
+        }      
     }
 }
 init()
